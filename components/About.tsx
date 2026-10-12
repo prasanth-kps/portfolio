@@ -1,105 +1,63 @@
 "use client";
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
-import { Container } from "@/components/SectionWrapper";
+import { useMemo, useRef } from "react";
+import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import Reveal from "@/components/Reveal";
+import { useView } from "@/components/ViewProvider";
+import { copy } from "@/data/views";
 
-const stats = [
-  { value: "Top 0.018%", label: "IIT JEE Mains 2018", sub: "Rank 23 / 125,000" },
-  { value: "Top 0.5%", label: "IIT JEE Advanced 2018", sub: "Rank 1318 / 230,000" },
-  { value: "Top 1%", label: "GATE 2022", sub: "Rank 1250 nationally" },
-  { value: "2+ yrs", label: "Industry Experience", sub: "Enphase Energy" },
-];
+interface W {
+  t: string;
+  accent?: boolean;
+}
+
+// "[like this]" marks accent words. Words light up as you read down the page.
+function parse(text: string): W[] {
+  const out: W[] = [];
+  for (const m of text.matchAll(/\[([^\]]+)\]|(\S+)/g)) {
+    if (m[1]) m[1].split(/\s+/).forEach((t) => out.push({ t, accent: true }));
+    else out.push({ t: m[2] });
+  }
+  return out;
+}
+
+function Word({ w, i, count, progress, still }: { w: W; i: number; count: number; progress: MotionValue<number>; still: boolean }) {
+  const start = i / count;
+  const opacity = useTransform(progress, [start, Math.min(start + 0.08, 1)], [0.18, 1]);
+  return (
+    <motion.span style={{ opacity: still ? 1 : opacity }} className={w.accent ? "text-accent-text" : ""}>
+      {w.t}{" "}
+    </motion.span>
+  );
+}
 
 export default function About() {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-100px" });
+  const { view } = useView();
+  const c = copy[view];
+  const words = useMemo(() => parse(c.about), [c.about]);
+  const ref = useRef<HTMLParagraphElement>(null);
+  const still = !!useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.5"] });
 
   return (
-    <section id="about" ref={ref} style={{ paddingTop: "10rem", paddingBottom: "10rem" }}>
-      <Container>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          style={{ textAlign: "center", marginBottom: "5rem" }}
-        >
-          <span className="text-indigo-400 font-mono text-sm tracking-widest uppercase">About</span>
-          <h2 style={{ marginTop: "1rem", fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 700, color: "white", lineHeight: 1.1 }}>
-            Who I Am
-          </h2>
-        </motion.div>
+    <section id="about" className="mx-auto max-w-[1400px] px-5 py-28 md:px-10 md:py-40">
+      <p
+        ref={ref}
+        key={view}
+        className="relative max-w-[24ch] font-display text-[clamp(2rem,4.6vw,4.4rem)] font-medium leading-[1.12] tracking-[-0.035em] md:max-w-[28ch]"
+      >
+        {words.map((w, i) => (
+          <Word key={i} w={w} i={i} count={words.length} progress={scrollYProgress} still={still} />
+        ))}
+      </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 420px), 1fr))", gap: "5rem", alignItems: "center" }}>
-          {/* Text */}
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            style={{ display: "flex", flexDirection: "column", gap: "2rem" }}
-          >
-            {[
-              <>I&apos;m a computer science graduate student at <span style={{ color: "#818cf8", fontWeight: 500 }}>University of Wisconsin-Madison</span>, with a dual degree (Bachelors + Masters) from <span style={{ color: "#2dd4bf", fontWeight: 500 }}>IIT Kharagpur</span> in Electronics and Electrical Communication Engineering.</>,
-              <>My work spans the full stack — from writing C/C++ software that runs on Enphase solar microinverters, to building systems that transmit data through sound. I&apos;m most at home in the space where <span style={{ color: "#c084fc", fontWeight: 500 }}>hardware meets intelligence</span>.</>,
-              <>Currently a <span style={{ color: "#818cf8", fontWeight: 500 }}>Graduate Teaching Assistant for CS 640 (Computer Networks)</span> at UW-Madison.<span style={{ color: "#2dd4bf", fontWeight: 500 }}></span></>,
-            ].map((text, i) => (
-              <p key={i} style={{ color: "#cbd5e1", fontSize: "1.1rem", lineHeight: 1.9 }}>{text}</p>
-            ))}
-
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "1.25rem", paddingTop: "0.5rem" }}>
-              <a href="mailto:pkasa@wisc.edu" style={{ color: "#818cf8", fontWeight: 500, fontSize: "1rem", textDecoration: "none" }}>
-                pkasa@wisc.edu ↗
-              </a>
-              <span style={{ color: "#1e293b" }}>·</span>
-              <span style={{ color: "#94a3b8", fontSize: "1rem" }}>+1 (608) 236-3062</span>
-            </div>
-          </motion.div>
-
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}
-          >
-            {stats.map((s, i) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
-                className="group"
-                style={{
-                  position: "relative",
-                  padding: "2rem",
-                  borderRadius: "1rem",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  background: "rgba(255,255,255,0.03)",
-                  transition: "all 0.3s",
-                }}
-              >
-                <div
-                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.07), rgba(20,184,166,0.07))" }}
-                />
-                <div style={{ position: "relative" }}>
-                  <div style={{
-                    fontSize: "1.5rem",
-                    fontWeight: 800,
-                    background: "linear-gradient(to right, #818cf8, #2dd4bf)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    lineHeight: 1.2,
-                  }}>
-                    {s.value}
-                  </div>
-                  <div style={{ marginTop: "0.75rem", color: "white", fontSize: "0.875rem", fontWeight: 600 }}>{s.label}</div>
-                  <div style={{ marginTop: "0.375rem", color: "#64748b", fontSize: "0.75rem" }}>{s.sub}</div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </Container>
+      <dl key={`facts-${view}`} className="mt-20 grid gap-10 border-t border-line pt-10 md:grid-cols-3 md:gap-0">
+        {c.facts.map((f, i) => (
+          <Reveal key={f.figure} delay={i * 0.08} className="md:border-l md:border-line md:px-8 md:first:border-l-0 md:first:pl-0">
+            <dt className="font-display text-4xl font-semibold tracking-tight md:text-5xl">{f.figure}</dt>
+            <dd className="mt-3 max-w-[26ch] text-[0.95rem] leading-snug text-muted">{f.text}</dd>
+          </Reveal>
+        ))}
+      </dl>
     </section>
   );
 }
