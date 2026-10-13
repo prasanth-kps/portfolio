@@ -5,7 +5,7 @@ import Magnetic from "@/components/Magnetic";
 import ViewSwitch from "@/components/ViewSwitch";
 import { useView } from "@/components/ViewProvider";
 import { copy, type HeadlineWord } from "@/data/views";
-import { layers, site, type Layer } from "@/data/site";
+import { layers, resumeFor, type Layer } from "@/data/site";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -202,7 +202,8 @@ export default function Hero() {
             </Magnetic>
             <Magnetic>
             <a
-              href={site.resume}
+              href={resumeFor(view).href}
+              title={`Open the ${resumeFor(view).name} resume`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-12 items-center border border-ink px-7 font-mono text-sm uppercase tracking-wider transition-[background-color,color,transform] duration-200 hover:bg-ink hover:text-bg active:translate-y-px"

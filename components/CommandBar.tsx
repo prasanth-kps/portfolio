@@ -5,7 +5,7 @@ import { useToast } from "@/components/ToastProvider";
 import { useView } from "@/components/ViewProvider";
 import { experiences } from "@/data/experience";
 import { projectFor, projects } from "@/data/projects";
-import { site } from "@/data/site";
+import { resumeFor, site } from "@/data/site";
 import { copy, views } from "@/data/views";
 import { switchTheme } from "@/lib/theme";
 
@@ -103,7 +103,7 @@ export default function CommandBar() {
         run: () => setView(v.id),
       })),
       { id: "a-theme", group: "Actions", label: "Toggle light or dark theme", keywords: "theme dark light mode", run: () => switchTheme() },
-      { id: "a-resume", group: "Actions", label: "Open resume", keywords: "cv pdf", run: () => window.open(site.resume, "_blank", "noopener") },
+      { id: "a-resume", group: "Actions", label: "Open resume", hint: resumeFor(view).name, keywords: "cv pdf", run: () => window.open(resumeFor(view).href, "_blank", "noopener") },
       {
         id: "a-copy",
         group: "Actions",

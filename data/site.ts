@@ -3,8 +3,16 @@ export const site = {
   email: "pkasa@wisc.edu",
   github: "https://github.com/prasanth-kps",
   linkedin: "https://www.linkedin.com/in/penchala-siva-prasanth-kasa-525280216/",
-  resume: "/resume.pdf",
 };
+
+// Each view has its own resume: General is the full one, the others are tailored one-pagers.
+const RESUMES = {
+  general: { href: "/resume.pdf", name: "General" },
+  software: { href: "/resume-software.pdf", name: "Software" },
+  ml: { href: "/resume-ml.pdf", name: "ML" },
+} as const;
+
+export const resumeFor = (view: keyof typeof RESUMES) => RESUMES[view];
 
 export interface Layer {
   id: string;

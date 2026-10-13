@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import ThemeToggle from "@/components/ThemeToggle";
 import ViewSwitch from "@/components/ViewSwitch";
-import { site } from "@/data/site";
+import { useView } from "@/components/ViewProvider";
+import { resumeFor } from "@/data/site";
 
 const links = [
   { label: "About", id: "about" },
@@ -15,6 +16,7 @@ const links = [
 ];
 
 export default function Navbar() {
+  const { view } = useView();
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("");
@@ -84,7 +86,8 @@ export default function Navbar() {
             <ViewSwitch className="hidden lg:inline-flex" />
             <ThemeToggle />
             <a
-              href={site.resume}
+              href={resumeFor(view).href}
+              title={`Open the ${resumeFor(view).name} resume`}
               target="_blank"
               rel="noopener noreferrer"
               className="label hidden h-9 items-center bg-ink px-4 !text-bg transition-colors duration-200 hover:bg-accent hover:!text-[#14181a] active:translate-y-px xl:inline-flex"
@@ -119,7 +122,7 @@ export default function Navbar() {
             {[...links, { label: "Resume", id: "" }].map((l) => (
               <a
                 key={l.label}
-                href={l.id ? `#${l.id}` : site.resume}
+                href={l.id ? `#${l.id}` : resumeFor(view).href}
                 onClick={() => setOpen(false)}
                 className="block border-b border-line py-4 font-display text-2xl font-semibold tracking-tight"
               >

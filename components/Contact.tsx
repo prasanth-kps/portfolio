@@ -4,17 +4,16 @@ import Reveal from "@/components/Reveal";
 import { useToast } from "@/components/ToastProvider";
 import { useView } from "@/components/ViewProvider";
 import { copy } from "@/data/views";
-import { site } from "@/data/site";
-
-const links = [
-  { label: "GitHub", href: site.github },
-  { label: "LinkedIn", href: site.linkedin },
-  { label: "Resume", href: site.resume },
-];
+import { resumeFor, site } from "@/data/site";
 
 export default function Contact() {
   const { view } = useView();
   const toast = useToast();
+  const links = [
+    { label: "GitHub", href: site.github },
+    { label: "LinkedIn", href: site.linkedin },
+    { label: "Resume", href: resumeFor(view).href },
+  ];
   const copyEmail = () =>
     navigator.clipboard
       .writeText(site.email)
