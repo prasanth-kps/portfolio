@@ -15,17 +15,40 @@ interface Fix {
 
 // The 98% to 82% endpoints are real. How the 16 points split across fixes is illustrative.
 const fixes: Fix[] = [
-  { id: "copies", label: "Process in place", hint: "Stop copying data between processing stages.", points: 6 },
-  { id: "lists", label: "Flat arrays, not linked lists", hint: "Drop per-node pointer overhead where random access is not needed.", points: 4 },
-  { id: "cache", label: "Evict stale cache entries", hint: "Free data nobody will read again.", points: 3 },
-  { id: "proto", label: "Tighten Protobuf layouts", hint: "Smaller messages, smaller buffers.", points: 3 },
+  {
+    id: "copies",
+    label: "Process in place",
+    hint: "Stop copying data between processing stages.",
+    points: 6,
+  },
+  {
+    id: "lists",
+    label: "Flat arrays, not linked lists",
+    hint: "Drop per-node pointer overhead where random access is not needed.",
+    points: 4,
+  },
+  {
+    id: "cache",
+    label: "Evict stale cache entries",
+    hint: "Free data nobody will read again.",
+    points: 3,
+  },
+  {
+    id: "proto",
+    label: "Tighten Protobuf layouts",
+    hint: "Smaller messages, smaller buffers.",
+    points: 3,
+  },
 ];
 
 function Counter({ value }: { value: number }) {
   const mv = useMotionValue(value);
   const text = useTransform(mv, (v) => Math.round(v).toString());
   useEffect(() => {
-    const controls = animate(mv, value, { duration: 0.6, ease: [0.16, 1, 0.3, 1] });
+    const controls = animate(mv, value, {
+      duration: 0.6,
+      ease: [0.16, 1, 0.3, 1],
+    });
     return () => controls.stop();
   }, [value, mv]);
   return <motion.span>{text}</motion.span>;
@@ -53,10 +76,19 @@ export default function RamToy() {
           />
         ))}
         <div className="mt-5 flex gap-2">
-          <Btn onClick={() => setApplied(Object.fromEntries(fixes.map((f) => [f.id, true])))} disabled={allOn}>
+          <Btn
+            onClick={() =>
+              setApplied(Object.fromEntries(fixes.map((f) => [f.id, true])))
+            }
+            disabled={allOn}
+          >
             Apply all
           </Btn>
-          <Btn onClick={() => setApplied({})} variant="line" disabled={saved === 0}>
+          <Btn
+            onClick={() => setApplied({})}
+            variant="line"
+            disabled={saved === 0}
+          >
             Reset
           </Btn>
         </div>
@@ -71,9 +103,14 @@ export default function RamToy() {
           >
             <Counter value={used} />
             <span className="text-3xl">%</span>
-            <span className="ml-3 whitespace-nowrap text-xl font-medium tracking-normal text-muted">RAM used</span>
+            <span className="ml-3 whitespace-nowrap text-xl font-medium tracking-normal text-muted">
+              RAM used
+            </span>
           </p>
-          <p aria-live="polite" className="max-w-[34ch] text-[0.95rem] sm:text-right leading-snug">
+          <p
+            aria-live="polite"
+            className="max-w-[34ch] text-[0.95rem] sm:text-right leading-snug"
+          >
             {used >= 95
               ? `Only ${100 - used}% headroom. One burst of data could exhaust memory.`
               : `${100 - used}% headroom. Room to absorb a burst.`}
@@ -92,7 +129,11 @@ export default function RamToy() {
               <li
                 key={i}
                 className={`aspect-square transition-colors duration-300 ${
-                  kind === "live" ? "bg-ink" : kind === "waste" ? "bg-accent" : "border border-line"
+                  kind === "live"
+                    ? "bg-ink"
+                    : kind === "waste"
+                      ? "bg-accent"
+                      : "border border-line"
                 }`}
               />
             );
@@ -101,15 +142,24 @@ export default function RamToy() {
 
         <p className="label mt-4 flex flex-wrap gap-x-6 gap-y-1 normal-case tracking-normal">
           <span>
-            <span aria-hidden className="mr-2 inline-block h-2.5 w-2.5 bg-ink" />
+            <span
+              aria-hidden
+              className="mr-2 inline-block h-2.5 w-2.5 bg-ink"
+            />
             Live data
           </span>
           <span>
-            <span aria-hidden className="mr-2 inline-block h-2.5 w-2.5 bg-accent" />
+            <span
+              aria-hidden
+              className="mr-2 inline-block h-2.5 w-2.5 bg-accent"
+            />
             Overhead and copies
           </span>
           <span>
-            <span aria-hidden className="mr-2 inline-block h-2.5 w-2.5 border border-line" />
+            <span
+              aria-hidden
+              className="mr-2 inline-block h-2.5 w-2.5 border border-line"
+            />
             Free
           </span>
         </p>

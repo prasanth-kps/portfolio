@@ -1,4 +1,5 @@
 "use client";
+import { AnimatePresence } from "framer-motion";
 import Reveal from "@/components/Reveal";
 import ProjectTile from "@/components/ProjectTile";
 import { useView } from "@/components/ViewProvider";
@@ -26,10 +27,12 @@ export default function Projects() {
           Things I have built
         </h2>
 
-        <Reveal key={view} className="mt-14 grid gap-px border border-line bg-line lg:grid-cols-6">
-          {list.map((p, i) => (
-            <ProjectTile key={p.id} p={p} span={SPANS[i]} wide={i === 0} />
-          ))}
+        <Reveal className="mt-14 grid gap-px border border-line bg-line lg:grid-cols-6">
+          <AnimatePresence>
+            {list.map((p, i) => (
+              <ProjectTile key={p.id} p={p} span={SPANS[i]} wide={i === 0} />
+            ))}
+          </AnimatePresence>
         </Reveal>
       </div>
     </section>

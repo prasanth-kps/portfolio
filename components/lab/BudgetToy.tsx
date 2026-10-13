@@ -11,14 +11,35 @@ interface Stage {
   extra?: boolean; // a cost the design choices can add or remove
 }
 
-function stages(historical: boolean, precomputed: boolean, deep: boolean): Stage[] {
+function stages(
+  historical: boolean,
+  precomputed: boolean,
+  deep: boolean,
+): Stage[] {
   return [
     { id: "net-in", label: "Network in", ms: 1.2 },
     { id: "deser", label: "Deserialize", ms: 0.6 },
     { id: "feat", label: "Real-time features", ms: 1.4 },
-    { id: "hist", label: "Historical lookup", ms: historical ? 8.2 : 0, extra: true },
-    { id: "norm", label: "Recompute normalization", ms: precomputed ? 0 : 1.1, extra: true },
-    { id: "infer", label: deep ? "Deep network inference" : "Lightweight tree model inference", ms: deep ? 7.8 : 2.1, extra: deep },
+    {
+      id: "hist",
+      label: "Historical lookup",
+      ms: historical ? 8.2 : 0,
+      extra: true,
+    },
+    {
+      id: "norm",
+      label: "Recompute normalization",
+      ms: precomputed ? 0 : 1.1,
+      extra: true,
+    },
+    {
+      id: "infer",
+      label: deep
+        ? "Deep network inference"
+        : "Lightweight tree model inference",
+      ms: deep ? 7.8 : 2.1,
+      extra: deep,
+    },
     { id: "ser", label: "Serialize", ms: 0.4 },
     { id: "net-out", label: "Network out", ms: 1.0 },
   ];
@@ -33,7 +54,9 @@ export default function BudgetToy() {
   const total = list.reduce((a, s) => a + s.ms, 0);
   const axis = Math.max(12, total * 1.06);
   const over = total > BUDGET_MS;
-  const starts = list.map((_, i) => list.slice(0, i).reduce((a, s) => a + s.ms, 0));
+  const starts = list.map((_, i) =>
+    list.slice(0, i).reduce((a, s) => a + s.ms, 0),
+  );
 
   return (
     <div className="grid gap-10 xl:grid-cols-[minmax(0,22rem)_1fr]">
@@ -71,7 +94,10 @@ export default function BudgetToy() {
             {total.toFixed(1)}
             <span className="ml-2 text-2xl text-muted">ms</span>
           </p>
-          <p aria-live="polite" className="max-w-[34ch] text-[0.95rem] sm:text-right leading-snug">
+          <p
+            aria-live="polite"
+            className="max-w-[34ch] text-[0.95rem] sm:text-right leading-snug"
+          >
             {over
               ? `Over budget by ${(total - BUDGET_MS).toFixed(1)} ms. In production this is a timeout or a fallback decision.`
               : `Fits with ${(BUDGET_MS - total).toFixed(1)} ms to spare.`}
@@ -79,7 +105,11 @@ export default function BudgetToy() {
         </div>
 
         <div className="relative mt-10">
-          <div className="relative h-14 overflow-hidden border border-line bg-sunken" role="img" aria-label={`Latency pipeline totaling ${total.toFixed(1)} milliseconds`}>
+          <div
+            className="relative h-14 overflow-hidden border border-line bg-sunken"
+            role="img"
+            aria-label={`Latency pipeline totaling ${total.toFixed(1)} milliseconds`}
+          >
             {list.map((s, i) => {
               const start = starts[i];
               return (
@@ -89,7 +119,9 @@ export default function BudgetToy() {
                   className={`absolute inset-y-0 left-0 w-full origin-left transition-transform duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] ${
                     s.extra ? "bg-accent" : i % 2 ? "bg-ink/70" : "bg-ink"
                   }`}
-                  style={{ transform: `translateX(${(start / axis) * 100}%) scaleX(${s.ms / axis})` }}
+                  style={{
+                    transform: `translateX(${(start / axis) * 100}%) scaleX(${s.ms / axis})`,
+                  }}
                 />
               );
             })}
@@ -99,7 +131,11 @@ export default function BudgetToy() {
             className="pointer-events-none absolute -top-6 bottom-0 transition-[left] duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]"
             style={{ left: `${(BUDGET_MS / axis) * 100}%` }}
           >
-            <span className={`label absolute -top-0.5 whitespace-nowrap ${BUDGET_MS / axis > 0.55 ? "right-2" : "left-2"}`}>10 ms budget</span>
+            <span
+              className={`label absolute -top-0.5 whitespace-nowrap ${BUDGET_MS / axis > 0.55 ? "right-2" : "left-2"}`}
+            >
+              10 ms budget
+            </span>
             <span className="absolute inset-y-0 left-0 w-px bg-ink" />
           </div>
         </div>
@@ -112,7 +148,9 @@ export default function BudgetToy() {
                 s.ms === 0 ? "opacity-30" : ""
               }`}
             >
-              <span className={s.extra && s.ms > 0 ? "text-accent-text" : ""}>{s.label}</span>
+              <span className={s.extra && s.ms > 0 ? "text-accent-text" : ""}>
+                {s.label}
+              </span>
               <span className="tabular-nums">{s.ms.toFixed(1)}</span>
             </li>
           ))}

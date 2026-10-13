@@ -25,7 +25,9 @@ export function Slider({
         <label htmlFor={id} className="label">
           {label}
         </label>
-        <span className="font-mono text-sm tabular-nums">{readout ?? value}</span>
+        <span className="font-mono text-sm tabular-nums">
+          {readout ?? value}
+        </span>
       </div>
       <input
         id={id}
@@ -76,10 +78,16 @@ export function Switch({
         />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block font-display text-lg font-semibold leading-tight tracking-tight">{label}</span>
-        <span className="mt-1 block text-[0.92rem] leading-snug text-muted">{hint}</span>
+        <span className="block font-display text-lg font-semibold leading-tight tracking-tight">
+          {label}
+        </span>
+        <span className="mt-1 block text-[0.92rem] leading-snug text-muted">
+          {hint}
+        </span>
       </span>
-      {delta && <span className="label shrink-0 pt-1.5 tabular-nums">{delta}</span>}
+      {delta && (
+        <span className="label shrink-0 pt-1.5 tabular-nums">{delta}</span>
+      )}
     </button>
   );
 }
@@ -112,10 +120,96 @@ export function Btn({
 }
 
 // Maps a pointer event to SVG viewBox coordinates.
-export function svgPoint(e: { clientX: number; clientY: number; currentTarget: Element }, w: number, h: number) {
+export function svgPoint(
+  e: { clientX: number; clientY: number; currentTarget: Element },
+  w: number,
+  h: number,
+) {
   const r = e.currentTarget.getBoundingClientRect();
   return {
     x: Math.min(w, Math.max(0, ((e.clientX - r.left) / r.width) * w)),
     y: Math.min(h, Math.max(0, ((e.clientY - r.top) / r.height) * h)),
   };
+}
+
+// Goal, running score and saved best, shown above every game.
+export function ScoreBar({
+  goal,
+  score,
+  best,
+  fmt = String,
+}: {
+  goal: string;
+  score: number;
+  best: number | null;
+  fmt?: (n: number) => string;
+}) {
+  return (
+    <div className="grid border border-line bg-bg sm:grid-cols-[1fr_auto_auto]">
+      <p className="px-4 py-3 text-[0.95rem] leading-snug">
+        <span className="label mr-3">Goal</span>
+        {goal}
+      </p>
+      <p className="border-t border-line px-5 py-3 sm:border-l sm:border-t-0">
+        <span className="label block">Score</span>
+        <span className="font-mono text-lg tabular-nums">{fmt(score)}</span>
+      </p>
+      <p className="border-t border-line px-5 py-3 sm:border-l sm:border-t-0">
+        <span className="label block">Best</span>
+        <span className="font-mono text-lg tabular-nums">
+          {best === null ? "none yet" : fmt(best)}
+        </span>
+      </p>
+    </div>
+  );
+}
+
+// Shown when a run ends: what happened, the score, and where the idea shows up in real work.
+export function ResultCard({
+  win,
+  headline,
+  detail,
+  real,
+  score,
+  best,
+  fmt = String,
+  onAgain,
+  again = "Play again",
+}: {
+  win: boolean;
+  headline: string;
+  detail: string;
+  real: string;
+  score: number;
+  best: number | null;
+  fmt?: (n: number) => string;
+  onAgain: () => void;
+  again?: string;
+}) {
+  const newBest = best !== null && score >= best && score > 0;
+  return (
+    <div
+      role="status"
+      className={`border bg-bg p-5 ${win ? "border-ink" : "border-accent"}`}
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <p
+          className={`font-display text-2xl font-semibold tracking-tight ${win ? "" : "text-accent-text"}`}
+        >
+          {headline}
+        </p>
+        <p className="label tabular-nums">
+          Score {fmt(score)}
+          {newBest ? ", your best" : ""}
+        </p>
+      </div>
+      <p className="mt-2 max-w-[62ch] text-[0.95rem] leading-snug">{detail}</p>
+      <p className="mt-3 max-w-[62ch] text-[0.92rem] leading-snug text-muted">
+        {real}
+      </p>
+      <div className="mt-5">
+        <Btn onClick={onAgain}>{again}</Btn>
+      </div>
+    </div>
+  );
 }

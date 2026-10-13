@@ -19,7 +19,11 @@ interface State {
   attempts: number;
   running: boolean;
 }
-type Action = { type: "start"; chunks: string[] } | { type: "tick"; ok: boolean } | { type: "stop" } | { type: "reset" };
+type Action =
+  | { type: "start"; chunks: string[] }
+  | { type: "tick"; ok: boolean }
+  | { type: "stop" }
+  | { type: "reset" };
 
 const initial: State = { frames: [], cursor: 0, attempts: 0, running: false };
 
@@ -27,7 +31,11 @@ function reducer(s: State, a: Action): State {
   switch (a.type) {
     case "start":
       return {
-        frames: a.chunks.map((chunk) => ({ chunk, status: "pending", tries: 0 })),
+        frames: a.chunks.map((chunk) => ({
+          chunk,
+          status: "pending",
+          tries: 0,
+        })),
         cursor: 0,
         attempts: 0,
         running: a.chunks.length > 0,
@@ -51,14 +59,20 @@ function reducer(s: State, a: Action): State {
         cursor += 1;
       }
       frames[s.cursor] = { ...f, tries, status };
-      return { frames, cursor, attempts: s.attempts + 1, running: cursor < frames.length };
+      return {
+        frames,
+        cursor,
+        attempts: s.attempts + 1,
+        running: cursor < frames.length,
+      };
     }
   }
 }
 
 const split = (msg: string) => {
   const out: string[] = [];
-  for (let i = 0; i < msg.length; i += FRAME_BYTES) out.push(msg.slice(i, i + FRAME_BYTES));
+  for (let i = 0; i < msg.length; i += FRAME_BYTES)
+    out.push(msg.slice(i, i + FRAME_BYTES));
   return out;
 };
 
@@ -77,18 +91,26 @@ export default function ZigbeeToy() {
 
   useEffect(() => {
     if (!s.running) return;
-    const id = setInterval(() => dispatch({ type: "tick", ok: Math.random() < quality / 100 }), TICK_MS);
+    const id = setInterval(
+      () => dispatch({ type: "tick", ok: Math.random() < quality / 100 }),
+      TICK_MS,
+    );
     return () => clearInterval(id);
   }, [s.running, quality]);
 
   const started = s.frames.length > 0;
-  const view: Frame[] = started ? s.frames : split(text).map((chunk) => ({ chunk, status: "pending", tries: 0 }));
+  const view: Frame[] = started
+    ? s.frames
+    : split(text).map((chunk) => ({ chunk, status: "pending", tries: 0 }));
   const finished = started && !s.running && s.cursor >= s.frames.length;
   const delivered = view.filter((f) => f.status === "done").length;
   const failedAt = view.findIndex((f) => f.status === "failed");
-  const received = view.map((f) => (f.status === "done" ? f.chunk : "░".repeat(f.chunk.length))).join("");
+  const received = view
+    .map((f) => (f.status === "done" ? f.chunk : "░".repeat(f.chunk.length)))
+    .join("");
 
-  let status = "Type a message. It gets cut into frames small enough for the radio.";
+  let status =
+    "Type a message. It gets cut into frames small enough for the radio.";
   if (s.running) status = `Sending frame ${s.cursor + 1} of ${view.length}…`;
   if (finished && failedAt === -1)
     status = `Delivered all ${view.length} frames in ${s.attempts} transmissions.`;
@@ -134,7 +156,10 @@ export default function ZigbeeToy() {
               Stop
             </Btn>
           ) : (
-            <Btn onClick={() => dispatch({ type: "start", chunks: split(text) })} disabled={!text}>
+            <Btn
+              onClick={() => dispatch({ type: "start", chunks: split(text) })}
+              disabled={!text}
+            >
               {finished ? "Send again" : "Send"}
             </Btn>
           )}
@@ -160,9 +185,19 @@ export default function ZigbeeToy() {
                   <span>#{i + 1}</span>
                   <span>{f.tries > 0 ? `x${f.tries}` : ""}</span>
                 </span>
-                <span className="truncate font-mono text-sm">{f.chunk.replace(/ /g, " ")}</span>
+                <span className="truncate font-mono text-sm">
+                  {f.chunk.replace(/ /g, " ")}
+                </span>
                 <span className="font-mono text-[0.65rem] uppercase tracking-wider opacity-70">
-                  {f.status === "done" ? "acked" : f.status === "failed" ? "dropped" : f.status === "retry" ? "retry" : sending ? "tx" : "queued"}
+                  {f.status === "done"
+                    ? "acked"
+                    : f.status === "failed"
+                      ? "dropped"
+                      : f.status === "retry"
+                        ? "retry"
+                        : sending
+                          ? "tx"
+                          : "queued"}
                 </span>
               </li>
             );
@@ -171,16 +206,23 @@ export default function ZigbeeToy() {
 
         <div className="mt-6 border border-line bg-bg p-4">
           <p className="label">Receiver has</p>
-          <p className="mt-2 whitespace-pre-wrap break-all font-mono text-[0.95rem] leading-relaxed">{received}</p>
+          <p className="mt-2 whitespace-pre-wrap break-all font-mono text-[0.95rem] leading-relaxed">
+            {received}
+          </p>
         </div>
 
         <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
-          <p aria-live="polite" className="max-w-[52ch] text-[0.95rem] leading-snug">
+          <p
+            aria-live="polite"
+            className="max-w-[52ch] text-[0.95rem] leading-snug"
+          >
             {status}
           </p>
           <p className="label tabular-nums">
             {delivered}/{view.length} frames, {s.attempts} tx
-            {started && s.attempts > 0 ? `, ${(s.attempts / Math.max(delivered, 1)).toFixed(1)} tx per frame` : ""}
+            {started && s.attempts > 0
+              ? `, ${(s.attempts / Math.max(delivered, 1)).toFixed(1)} tx per frame`
+              : ""}
           </p>
         </div>
       </div>

@@ -3,6 +3,8 @@ import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import MotionProvider from "@/components/MotionProvider";
 import { ViewProvider } from "@/components/ViewProvider";
+import { ToastProvider } from "@/components/ToastProvider";
+import CommandBar from "@/components/CommandBar";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -58,7 +60,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <MotionProvider>
-          <ViewProvider>{children}</ViewProvider>
+          <ToastProvider>
+            <ViewProvider>
+              {children}
+              <CommandBar />
+            </ViewProvider>
+          </ToastProvider>
         </MotionProvider>
       </body>
     </html>

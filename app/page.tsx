@@ -7,6 +7,7 @@ import Lab from "@/components/Lab";
 import Skills from "@/components/Skills";
 import Education from "@/components/Education";
 import Achievements from "@/components/Achievements";
+import Terminal from "@/components/Terminal";
 import Contact from "@/components/Contact";
 
 export default function Home() {
@@ -22,6 +23,7 @@ export default function Home() {
         <Skills />
         <Education />
         <Achievements />
+        <Terminal />
       </main>
       <Contact />
     </>

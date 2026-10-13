@@ -40,15 +40,18 @@ export default function About() {
 
   return (
     <section id="about" className="mx-auto max-w-[1400px] px-5 py-28 md:px-10 md:py-40">
-      <p
+      <motion.p
         ref={ref}
         key={view}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         className="relative max-w-[24ch] font-display text-[clamp(2rem,4.6vw,4.4rem)] font-medium leading-[1.12] tracking-[-0.035em] md:max-w-[28ch]"
       >
         {words.map((w, i) => (
           <Word key={i} w={w} i={i} count={words.length} progress={scrollYProgress} still={still} />
         ))}
-      </p>
+      </motion.p>
 
       <dl key={`facts-${view}`} className="mt-20 grid gap-10 border-t border-line pt-10 md:grid-cols-3 md:gap-0">
         {c.facts.map((f, i) => (

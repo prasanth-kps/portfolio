@@ -39,12 +39,18 @@ const START_SITES: Site[] = [
   { id: 5, x: 330, y: 245, sev: 3 },
 ];
 
-const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
+const dist = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+  Math.hypot(a.x - b.x, a.y - b.y);
 
 // Highest severity first. Each site draws from its nearest online depot, then the next nearest.
 function allocate(sites: Site[], down: Set<string>) {
-  const left = Object.fromEntries(DEPOTS.map((d) => [d.id, down.has(d.id) ? 0 : d.supply]));
-  const result = new Map<number, { need: number; served: number; legs: Leg[] }>();
+  const left = Object.fromEntries(
+    DEPOTS.map((d) => [d.id, down.has(d.id) ? 0 : d.supply]),
+  );
+  const result = new Map<
+    number,
+    { need: number; served: number; legs: Leg[] }
+  >();
   let reroutes = 0;
   [...sites]
     .sort((a, b) => b.sev - a.sev || a.id - b.id)
@@ -74,7 +80,10 @@ export default function AllocatorToy() {
   const [down, setDown] = useState<Set<string>>(new Set());
   const [nextId, setNextId] = useState(6);
 
-  const { result, left, reroutes } = useMemo(() => allocate(sites, down), [sites, down]);
+  const { result, left, reroutes } = useMemo(
+    () => allocate(sites, down),
+    [sites, down],
+  );
   const need = sites.reduce((a, s) => a + s.sev * UNITS_PER_SEVERITY, 0);
   const served = [...result.values()].reduce((a, r) => a + r.served, 0);
 
@@ -83,7 +92,8 @@ export default function AllocatorToy() {
     setSites((s) => [...s, { id: nextId, x, y, sev: 3 }]);
     setNextId((n) => n + 1);
   };
-  const addRandom = () => addAt(30 + Math.random() * (W - 60), 30 + Math.random() * (H - 60));
+  const addRandom = () =>
+    addAt(30 + Math.random() * (W - 60), 30 + Math.random() * (H - 60));
   const bump = (id: number, by: number) =>
     setSites((all) =>
       all.flatMap((s) => {
@@ -167,7 +177,9 @@ export default function AllocatorToy() {
                   width="20"
                   height="20"
                   strokeWidth="2"
-                  className={off ? "fill-bg stroke-muted" : "fill-bg stroke-ink"}
+                  className={
+                    off ? "fill-bg stroke-muted" : "fill-bg stroke-ink"
+                  }
                 />
                 <text
                   x={d.x}
@@ -179,7 +191,14 @@ export default function AllocatorToy() {
                 >
                   {d.id}
                 </text>
-                <text x={d.x} y={d.y + 26} textAnchor="middle" fontSize="9" fontFamily="var(--font-geist-mono)" className="fill-muted">
+                <text
+                  x={d.x}
+                  y={d.y + 26}
+                  textAnchor="middle"
+                  fontSize="9"
+                  fontFamily="var(--font-geist-mono)"
+                  className="fill-muted"
+                >
                   {off ? "DOWN" : `${left[d.id]}/${d.supply}`}
                 </text>
               </g>
@@ -187,7 +206,8 @@ export default function AllocatorToy() {
           })}
         </svg>
         <p className="label mt-3 normal-case tracking-normal">
-          Click the map to add a site. Click a site to raise its severity. Solid lines are nearest-depot supply, dashed orange lines are fallback.
+          Click the map to add a site. Click a site to raise its severity. Solid
+          lines are nearest-depot supply, dashed orange lines are fallback.
         </p>
       </div>
 
@@ -202,7 +222,9 @@ export default function AllocatorToy() {
                 aria-pressed={down.has(d.id)}
                 onClick={() => toggleDepot(d.id)}
                 className={`label h-10 flex-1 border transition-colors duration-200 ${
-                  down.has(d.id) ? "border-accent bg-accent/15 !text-accent-text" : "border-line !text-ink hover:border-ink"
+                  down.has(d.id)
+                    ? "border-accent bg-accent/15 !text-accent-text"
+                    : "border-line !text-ink hover:border-ink"
                 }`}
               >
                 {d.id} {down.has(d.id) ? "down" : "online"}
@@ -219,12 +241,17 @@ export default function AllocatorToy() {
           >
             {need ? Math.round((served / need) * 100) : 100}%
           </p>
-          <p aria-live="polite" className="label mt-2 normal-case tracking-normal">
-            {served} of {need} units delivered. {reroutes} fallback {reroutes === 1 ? "route" : "routes"}.
+          <p
+            aria-live="polite"
+            className="label mt-2 normal-case tracking-normal"
+          >
+            {served} of {need} units delivered. {reroutes} fallback{" "}
+            {reroutes === 1 ? "route" : "routes"}.
           </p>
           {served < need && (
             <p className="mt-2 text-[0.92rem] leading-snug text-muted">
-              Supply ran short, so the lowest-severity sites went unserved first.
+              Supply ran short, so the lowest-severity sites went unserved
+              first.
             </p>
           )}
         </div>
@@ -233,7 +260,10 @@ export default function AllocatorToy() {
           {sites.map((s, i) => {
             const r = result.get(s.id)!;
             return (
-              <li key={s.id} className="flex items-center justify-between gap-3 border-b border-line py-2 font-mono text-[0.8rem]">
+              <li
+                key={s.id}
+                className="flex items-center justify-between gap-3 border-b border-line py-2 font-mono text-[0.8rem]"
+              >
                 <span className="tabular-nums">Site {i + 1}</span>
                 <span className="flex items-center gap-1">
                   <button
@@ -244,7 +274,9 @@ export default function AllocatorToy() {
                   >
                     {s.sev === 1 ? "×" : "-"}
                   </button>
-                  <span className="w-14 text-center tabular-nums">sev {s.sev}</span>
+                  <span className="w-14 text-center tabular-nums">
+                    sev {s.sev}
+                  </span>
                   <button
                     type="button"
                     aria-label={`Raise severity of site ${i + 1}`}
@@ -255,7 +287,9 @@ export default function AllocatorToy() {
                     +
                   </button>
                 </span>
-                <span className={`w-16 text-right tabular-nums ${r.served < r.need ? "text-accent-text" : ""}`}>
+                <span
+                  className={`w-16 text-right tabular-nums ${r.served < r.need ? "text-accent-text" : ""}`}
+                >
                   {r.served}/{r.need}
                 </span>
               </li>

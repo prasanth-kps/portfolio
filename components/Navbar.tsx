@@ -53,7 +53,7 @@ export default function Navbar() {
         }`}
       >
         <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-5 md:px-10">
-          <a href="#top" className="font-display text-lg font-semibold tracking-tight" translate="no">
+          <a href="#top" className="whitespace-nowrap font-display text-lg font-semibold tracking-tight" translate="no">
             Prasanth Kasa
           </a>
 
@@ -73,6 +73,14 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Open command menu"
+              onClick={() => window.dispatchEvent(new Event("open-command"))}
+              className="label hidden h-9 items-center border border-line px-3 transition-colors duration-200 hover:border-ink hover:!text-ink xl:inline-flex"
+            >
+              ⌘K
+            </button>
             <ViewSwitch className="hidden lg:inline-flex" />
             <ThemeToggle />
             <a
@@ -98,6 +106,16 @@ export default function Navbar() {
         {open && (
           <nav id="mobile-menu" aria-label="Mobile" className="border-t border-line bg-bg px-5 pb-6 pt-4 lg:hidden">
             <ViewSwitch className="mb-2 inline-flex" />
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                window.dispatchEvent(new Event("open-command"));
+              }}
+              className="block w-full border-b border-line py-4 text-left font-display text-2xl font-semibold tracking-tight"
+            >
+              Search
+            </button>
             {[...links, { label: "Resume", id: "" }].map((l) => (
               <a
                 key={l.label}

@@ -1,34 +1,11 @@
 "use client";
-import { Fragment, useRef } from "react";
+import { useRef } from "react";
+import { motion } from "framer-motion";
 import FskDemo from "@/components/FskDemo";
+import Pipeline from "@/components/Pipeline";
 import type { Project } from "@/data/projects";
 
-function Flow({ rows, large }: { rows: string[][]; large?: boolean }) {
-  return (
-    <div className={large ? "space-y-5" : "space-y-2.5"}>
-      {rows.map((row) => (
-        <div key={row.join()} role="img" aria-label={row.join(" to ")} className="flex flex-wrap items-center gap-y-2">
-          {row.map((node, i) => (
-            <Fragment key={node}>
-              <span
-                className={`border border-current/30 font-mono tracking-wide ${
-                  large ? "px-4 py-2.5 text-sm" : "px-2.5 py-1 text-xs"
-                }`}
-              >
-                {node}
-              </span>
-              {i < row.length - 1 && (
-                <span aria-hidden className={`h-px bg-current opacity-40 ${large ? "w-5 sm:w-10" : "w-4 sm:w-6"}`} />
-              )}
-            </Fragment>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-const tones: Record<string, { box: string; text: string; style?: React.CSSProperties; }> = {
+const tones: Record<string, { box: string; text: string; style?: React.CSSProperties }> = {
   aura: { box: "tone-invert bg-ink text-bg", text: "text-bg/75" },
   nofi: { box: "bg-surface", text: "text-muted" },
   "disaster-response": {
@@ -53,10 +30,15 @@ export default function ProjectTile({ p, span, wide }: { p: Project; span: strin
   };
 
   return (
-    <article
+    <motion.article
       id={`project-${p.id}`}
+      layout="position"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.45, layout: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } }}
       onPointerMove={onMove}
-      className={`group relative isolate flex flex-col overflow-hidden p-7 transition-transform duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 md:p-9 ${tone.box} ${span}`}
+      className={`group relative isolate flex flex-col overflow-hidden p-7 transition-[translate] duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 md:p-9 ${tone.box} ${span}`}
       style={tone.style}
     >
       <div
@@ -85,10 +67,10 @@ export default function ProjectTile({ p, span, wide }: { p: Project; span: strin
       <h3 className="mt-10 text-[clamp(1.9rem,3vw,2.8rem)] font-semibold leading-[1] tracking-[-0.035em]">{p.title}</h3>
       <p className="label mt-3">{p.subtitle}</p>
 
-      <div className="my-8 flex-1">{p.id === "nofi" ? <FskDemo /> : <Flow rows={p.flow} large={wide} />}</div>
+      <div className="my-8 flex-1">{p.id === "nofi" ? <FskDemo /> : <Pipeline rows={p.flow} large={wide} invert={tone.box.includes("tone-invert")} />}</div>
 
       <p className={`max-w-[58ch] text-[0.98rem] leading-relaxed ${tone.text}`}>{p.description}</p>
       <p className="mt-6 font-mono text-xs leading-relaxed tracking-wide opacity-70">{p.tags.join(" / ")}</p>
-    </article>
+    </motion.article>
   );
 }

@@ -1,38 +1,23 @@
 "use client";
 import { useEffect, useState } from "react";
-
-type Theme = "light" | "dark";
+import { currentTheme, switchTheme, type Theme } from "@/lib/theme";
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme | null>(null);
 
+  // Follow the attribute so other controls (command bar, terminal) stay in sync.
   useEffect(() => {
-    const attr = document.documentElement.getAttribute("data-theme");
-    const resolved: Theme =
-      attr === "light" || attr === "dark"
-        ? attr
-        : window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light";
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTheme(resolved);
+    setTheme(currentTheme());
+    const obs = new MutationObserver(() => setTheme(currentTheme()));
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => obs.disconnect();
   }, []);
-
-  const toggle = () => {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    document.documentElement.setAttribute("data-theme", next);
-    try {
-      localStorage.setItem("theme", next);
-    } catch {
-      /* storage unavailable: theme still applies for this visit */
-    }
-  };
 
   return (
     <button
       type="button"
-      onClick={toggle}
+      onClick={switchTheme}
       aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
       className="label inline-flex h-9 w-[4.5rem] items-center justify-center border border-line transition-colors duration-200 hover:border-ink hover:text-ink"
     >

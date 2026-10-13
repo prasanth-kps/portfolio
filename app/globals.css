@@ -2,7 +2,7 @@
 
 /*
   Design tokens. Corner radius lock: everything is sharp (0). Z-index scale:
-  content 0, nav 40, skip-link 50.
+  content 0, nav 40, skip-link 50, command bar 60, toast 70.
   Light: cool paper + ink. Dark: green-black + bone. One accent (burnt orange).
 */
 :root {
@@ -220,4 +220,44 @@ input[type="range"].range::-moz-range-thumb {
 }
 input[type="range"].range:hover::-moz-range-thumb {
   background: var(--accent);
+}
+
+/* Inputs sit inside bordered rows, so draw their focus ring inward */
+input:focus-visible,
+textarea:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Theme switches dissolve softly (see lib/transition.ts). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  mix-blend-mode: normal;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Place names that play a scene (see components/PlaceTag.tsx) */
+.place-tag {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-decoration-color: color-mix(in oklab, currentColor 45%, transparent);
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s;
+}
+.place-tag:hover {
+  text-decoration-color: var(--accent);
 }

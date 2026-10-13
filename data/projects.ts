@@ -1,3 +1,10 @@
+export interface FlowNode {
+  label: string;
+  note: string;
+}
+
+const n = (label: string, note: string): FlowNode => ({ label, note });
+
 export interface Project {
   id: string;
   title: string;
@@ -8,7 +15,7 @@ export interface Project {
   demo: string | null;
   badge: string;
   // Architecture as rows of nodes, rendered as a typographic diagram.
-  flow: string[][];
+  flow: FlowNode[][];
   // Tailored text for the Software and ML views.
   views?: Partial<Record<"software" | "ml", Partial<Pick<Project, "description" | "tags" | "badge">>>>;
 }
@@ -25,10 +32,27 @@ export const projects: Project[] = [
     demo: null,
     badge: "Qualcomm hackathon, team of 4",
     flow: [
-      ["Camera", "Face embeddings", "Match"],
-      ["Mic", "faster-whisper", "Local LLM", "Enroll name"],
-      ["Camera", "CLIP + BLIP", "Scene caption"],
-      ["Camera", "YOLO + tracking", "Object memory"],
+      [
+        n("Camera", "Video frames from the glasses feed three perception lenses that run in parallel."),
+        n("Face embeddings", "The Face ID lens turns each detected face into an embedding on the NPU."),
+        n("Match", "Embeddings are compared against an enrolled database to recognize known faces."),
+      ],
+      [
+        n("Mic", "When a face is unknown, audio from the conversation is captured."),
+        n("faster-whisper", "Speech is transcribed locally with faster-whisper."),
+        n("Local LLM", "A local LLM extracts the name from the introduction."),
+        n("Enroll name", "The new face is enrolled under that name for next time."),
+      ],
+      [
+        n("Camera", "The same frames feed the scene lens."),
+        n("CLIP + BLIP", "CLIP classifies the scene zero-shot and BLIP writes a natural-language caption."),
+        n("Scene caption", "The result is a plain-English description of what the camera sees."),
+      ],
+      [
+        n("Camera", "And the object lens."),
+        n("YOLO + tracking", "YOLO detects objects and tracks them across frames."),
+        n("Object memory", "Sightings are remembered, so you can ask in plain English where something is."),
+      ],
     ],
   },
   {
@@ -66,8 +90,17 @@ export const projects: Project[] = [
     demo: null,
     badge: "HPC course project",
     flow: [
-      ["Corpus", "Shards", "Parallel workers", "Local top-k"],
-      ["Merge", "Global ranking", "recall@k vs exact"],
+      [
+        n("Corpus", "The vector dataset to search."),
+        n("Shards", "The corpus is split into shards so workers can search in parallel."),
+        n("Parallel workers", "Workers search their own shards at once, with MPI across nodes and OpenMP within a node."),
+        n("Local top-k", "Each worker keeps its k nearest candidates. Distance computation is accelerated with SIMD and CUDA."),
+      ],
+      [
+        n("Merge", "Local results from every worker are merged."),
+        n("Global ranking", "The merged candidates become one global top-k ranking."),
+        n("recall@k vs exact", "The ranking is scored against an exact baseline to measure recall@k, alongside latency and throughput."),
+      ],
     ],
   },
   {
@@ -81,8 +114,16 @@ export const projects: Project[] = [
     demo: "https://disaster-response-framework.streamlit.app",
     badge: "Single-author paper",
     flow: [
-      ["IoT + geo data", "1D CNN (64-d)", "TabNet"],
-      ["Priority score", "Allocator", "Fallback"],
+      [
+        n("IoT + geo data", "Coordinates, IoT sensor readings and user-reported severities stream in over WebSockets and MQTT."),
+        n("1D CNN (64-d)", "A 1D CNN condenses the preprocessed features into a 64-dimensional vector."),
+        n("TabNet", "TabNet's attention weights the features that matter and predicts a priority score."),
+      ],
+      [
+        n("Priority score", "Requests are ranked by priority so the most urgent are served first."),
+        n("Allocator", "Medical, food and rescue resources are allocated under strict latency and availability goals."),
+        n("Fallback", "A fault-tolerant manager detects failures or demand surges and redirects requests to the next nearest active center."),
+      ],
     ],
   },
   {
@@ -102,7 +143,14 @@ export const projects: Project[] = [
         tags: ["Python", "Flask", "SQLite", "Docker"],
       },
     },
-    flow: [["Wearables", "Gateway", "Medical center", "Hospital ranking"]],
+    flow: [
+      [
+        n("Wearables", "IoT simulators stream heart rate, blood pressure, SpO2, temperature and respiratory rate every 30 seconds."),
+        n("Gateway", "The gateway normalizes the readings and forwards them."),
+        n("Medical center", "The medical center classifies each patient's health status and raises alerts."),
+        n("Hospital ranking", "Hospitals are ranked on multiple criteria so the best fit can be chosen."),
+      ],
+    ],
   },
   {
     id: "crawler",
@@ -115,8 +163,16 @@ export const projects: Project[] = [
     demo: null,
     badge: "In daily use",
     flow: [
-      ["62 boards", "Scrape", "Normalize", "SQLite"],
-      ["Detect changes", "Email digest"],
+      [
+        n("62 boards", "35 Greenhouse boards, 18 Lever boards and 9 custom career pages."),
+        n("Scrape", "One scraper per source type: JSON APIs, raw HTML, and a headless browser for JavaScript pages. Retries, jittered rate limits and timeouts isolate failures."),
+        n("Normalize", "Different sources are normalized into one record contract and one SQL schema."),
+        n("SQLite", "A UNIQUE URL constraint makes re-runs idempotent, so duplicates never accumulate."),
+      ],
+      [
+        n("Detect changes", "Only new matches survive the title, location and recency filters."),
+        n("Email digest", "A daily email digest, a location-filtered feed and a CSV export."),
+      ],
     ],
   },
 ];

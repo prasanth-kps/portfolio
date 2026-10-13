@@ -1,4 +1,5 @@
 "use client";
+import PlaceTag from "@/components/PlaceTag";
 import Reveal from "@/components/Reveal";
 import { useView } from "@/components/ViewProvider";
 import { education } from "@/data/site";
@@ -22,9 +23,13 @@ export default function Education() {
               <Reveal
                 key={e.school}
                 delay={i * 0.08}
-                className="lg:border-l lg:border-line lg:px-10 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
+                placeHost
+                className="relative isolate lg:border-l lg:border-line lg:px-10 lg:first:border-l-0 lg:first:pl-0 lg:last:pr-0"
               >
-                <p className="label">{e.period}</p>
+                <p className="label flex flex-wrap gap-x-4">
+                  <span>{e.period}</span>
+                  <PlaceTag text={e.place} />
+                </p>
                 <h3 className="mt-4 text-[clamp(1.9rem,3vw,2.7rem)] font-semibold leading-[1.02] tracking-[-0.035em]">
                   {e.school}
                 </h3>
