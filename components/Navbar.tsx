@@ -1,160 +1,140 @@
 "use client";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useScroll, useSpring } from "framer-motion";
+import ThemeToggle from "@/components/ThemeToggle";
+import ViewSwitch from "@/components/ViewSwitch";
+import { site } from "@/data/site";
 
 const links = [
-  { label: "About", href: "#about" },
-  { label: "Experience", href: "#experience" },
-  { label: "Projects", href: "#projects" },
-  { label: "Skills", href: "#skills" },
-  { label: "Contact", href: "#contact" },
+  { label: "About", id: "about" },
+  { label: "Experience", id: "experience" },
+  { label: "Projects", id: "projects" },
+  { label: "Lab", id: "lab" },
+  { label: "Skills", id: "skills" },
+  { label: "Contact", id: "contact" },
 ];
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [stuck, setStuck] = useState(false);
+  const [open, setOpen] = useState(false);
   const [active, setActive] = useState("");
+  const sentinel = useRef<HTMLDivElement>(null);
 
+  // Reading progress. Spring keeps the bar from jittering on trackpads.
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 140, damping: 30, restDelta: 0.001 });
+
+  // Border appears once the page leaves the top. IntersectionObserver, no scroll listener.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    const el = sentinel.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setStuck(!e.isIntersecting), { threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
 
-  const handleClick = (href: string) => {
-    setActive(href);
-    setMenuOpen(false);
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-  };
+  // Highlight the section currently crossing the middle of the viewport.
+  useEffect(() => {
+    const targets = links.map((l) => document.getElementById(l.id)).filter(Boolean) as HTMLElement[];
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && setActive(e.target.id)),
+      { rootMargin: "-45% 0px -50% 0px" },
+    );
+    targets.forEach((t) => io.observe(t));
+    return () => io.disconnect();
+  }, []);
 
   return (
-    <motion.nav
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-[#050510]/80 backdrop-blur-xl border-b border-white/5 shadow-lg shadow-black/20"
-          : "bg-transparent"
-      }`}
-    >
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <motion.a
-          href="#"
-          onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-          className="text-white font-bold text-lg tracking-tight"
-          whileHover={{ scale: 1.05 }}
-        >
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-teal-400">
-            PK
-          </span>
-          <span className="text-slate-400 text-sm font-normal ml-1 hidden sm:inline">/ Prasanth Kasa</span>
-        </motion.a>
-
-        {/* Desktop links */}
-        <div className="hidden md:flex items-center" style={{ gap: "0.25rem" }}>
-          {links.map((link) => (
-            <button
-              key={link.href}
-              onClick={() => handleClick(link.href)}
-              style={{
-                position: "relative",
-                padding: "0.5rem 1rem",
-                fontSize: "0.875rem",
-                borderRadius: "0.5rem",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: active === link.href ? "white" : "#94a3b8",
-                transition: "color 0.2s",
-              }}
-              onMouseEnter={(e) => { if (active !== link.href) (e.currentTarget as HTMLElement).style.color = "white"; }}
-              onMouseLeave={(e) => { if (active !== link.href) (e.currentTarget as HTMLElement).style.color = "#94a3b8"; }}
-            >
-              {active === link.href && (
-                <motion.span
-                  layoutId="nav-pill"
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "rgba(255,255,255,0.08)",
-                    borderRadius: "0.5rem",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                  }}
-                />
-              )}
-              <span style={{ position: "relative", zIndex: 10 }}>{link.label}</span>
-            </button>
-          ))}
-          <a
-            href="/resume.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              marginLeft: "1rem",
-              padding: "0.5rem 1.1rem",
-              fontSize: "0.875rem",
-              borderRadius: "0.5rem",
-              background: "#4f46e5",
-              color: "white",
-              fontWeight: 500,
-              textDecoration: "none",
-              transition: "background 0.2s",
-            }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "#4338ca")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "#4f46e5")}
-          >
-            Resume ↗
+    <>
+      <div ref={sentinel} aria-hidden className="absolute left-0 top-0 h-8 w-px" />
+      <header
+        className={`fixed inset-x-0 top-0 z-40 border-b bg-bg/90 backdrop-blur-sm transition-colors duration-300 ${
+          stuck || open ? "border-line" : "border-transparent"
+        }`}
+      >
+        <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-5 md:px-10">
+          <a href="#top" className="whitespace-nowrap font-display text-lg font-semibold tracking-tight" translate="no">
+            Prasanth Kasa
           </a>
+
+          <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
+            {links.map((l) => (
+              <a
+                key={l.id}
+                href={`#${l.id}`}
+                aria-current={active === l.id ? "true" : undefined}
+                className={`label px-3 py-2 transition-colors duration-200 hover:text-ink ${
+                  active === l.id ? "!text-ink" : ""
+                }`}
+              >
+                {l.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Open command menu"
+              onClick={() => window.dispatchEvent(new Event("open-command"))}
+              className="label hidden h-9 items-center border border-line px-3 transition-colors duration-200 hover:border-ink hover:!text-ink xl:inline-flex"
+            >
+              ⌘K
+            </button>
+            <ViewSwitch className="hidden lg:inline-flex" />
+            <ThemeToggle />
+            <a
+              href={site.resume}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="label hidden h-9 items-center bg-ink px-4 !text-bg transition-colors duration-200 hover:bg-accent hover:!text-[#14181a] active:translate-y-px xl:inline-flex"
+            >
+              Resume
+            </a>
+            <button
+              type="button"
+              className="label inline-flex h-9 items-center border border-line px-3 lg:hidden"
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+              onClick={() => setOpen((o) => !o)}
+            >
+              {open ? "Close" : "Menu"}
+            </button>
+          </div>
         </div>
 
-        {/* Mobile menu button */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden p-2 text-slate-400 hover:text-white"
-          aria-label="Menu"
-        >
-          <div className="w-5 h-4 flex flex-col justify-between">
-            <span className={`block h-0.5 bg-current transition-all duration-300 ${menuOpen ? "rotate-45 translate-y-[7px]" : ""}`} />
-            <span className={`block h-0.5 bg-current transition-all duration-300 ${menuOpen ? "opacity-0" : ""}`} />
-            <span className={`block h-0.5 bg-current transition-all duration-300 ${menuOpen ? "-rotate-45 -translate-y-[9px]" : ""}`} />
-          </div>
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="md:hidden overflow-hidden bg-[#050510]/95 backdrop-blur-xl border-b border-white/5"
-          >
-            <div className="px-6 py-4 flex flex-col gap-2">
-              {links.map((link) => (
-                <button
-                  key={link.href}
-                  onClick={() => handleClick(link.href)}
-                  className="text-left px-4 py-3 text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                >
-                  {link.label}
-                </button>
-              ))}
+        {open && (
+          <nav id="mobile-menu" aria-label="Mobile" className="border-t border-line bg-bg px-5 pb-6 pt-4 lg:hidden">
+            <ViewSwitch className="mb-2 inline-flex" />
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                window.dispatchEvent(new Event("open-command"));
+              }}
+              className="block w-full border-b border-line py-4 text-left font-display text-2xl font-semibold tracking-tight"
+            >
+              Search
+            </button>
+            {[...links, { label: "Resume", id: "" }].map((l) => (
               <a
-                href="/resume.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 px-4 py-3 text-center rounded-lg bg-indigo-600 text-white font-medium"
+                key={l.label}
+                href={l.id ? `#${l.id}` : site.resume}
+                onClick={() => setOpen(false)}
+                className="block border-b border-line py-4 font-display text-2xl font-semibold tracking-tight"
               >
-                Resume ↗
+                {l.label}
               </a>
-            </div>
-          </motion.div>
+            ))}
+          </nav>
         )}
-      </AnimatePresence>
-    </motion.nav>
+
+        <motion.div
+          aria-hidden
+          style={{ scaleX: progress }}
+          className="absolute inset-x-0 bottom-0 h-px origin-left bg-accent"
+        />
+      </header>
+    </>
   );
 }

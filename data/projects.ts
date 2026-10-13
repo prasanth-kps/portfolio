@@ -1,76 +1,181 @@
+export interface FlowNode {
+  label: string;
+  note: string;
+}
+
+const n = (label: string, note: string): FlowNode => ({ label, note });
+
 export interface Project {
   id: string;
   title: string;
   subtitle: string;
   description: string;
-  longDescription: string;
   tags: string[];
-  github: string;
+  github: string | null;
   demo: string | null;
-  highlight: string;
-  gradient: string;
-  accentColor: string;
+  badge: string;
+  // Architecture as rows of nodes, rendered as a typographic diagram.
+  flow: FlowNode[][];
+  // Tailored text for the Software and ML views.
+  views?: Partial<Record<"software" | "ml", Partial<Pick<Project, "description" | "tags" | "badge">>>>;
 }
 
 export const projects: Project[] = [
   {
     id: "aura",
     title: "AURA",
-    subtitle: "Augmented Understanding & Relational Archive",
+    subtitle: "On-device assistant for smart glasses",
     description:
-      "On-device AI assistant for smart glasses — real-time face recognition, scene understanding, and spatial object memory. Three parallel perception lenses running entirely on-device via Qualcomm AI Hub NPU.",
-    longDescription:
-      "AURA processes video and audio in real time — recognizing faces, understanding scenes, and remembering objects — entirely on-device with no cloud dependency. The Face ID Lens matches faces against an enrolled database and uses Whisper + LLM to extract names from audio when a face is unknown. The Scene Insight Lens uses CLIP + BLIP for zero-shot scene classification and natural language captioning. The Find-My-Object Lens uses YOLOv11 to track objects across frames and lets users query memory in plain English.",
-    tags: ["Python", "YOLOv11", "CLIP", "BLIP", "Whisper", "ONNX", "Streamlit", "Qualcomm AI Hub"],
+      "A proof of concept that runs vision, speech and language models entirely on-device, on Qualcomm Snapdragon hardware through ONNX Runtime and the QNN provider, with CPU fallback. Three lenses: face ID that learns names from audio, zero-shot scene captions, and an object memory you can query in plain English.",
+    tags: ["Python", "ONNX Runtime", "QNN", "CLIP", "BLIP", "YOLO", "faster-whisper", "Ollama", "OpenCV", "Streamlit"],
     github: "https://github.com/prasanth-kps/aura",
     demo: null,
-    highlight: "NPU-accelerated · Qualcomm Hackathon",
-    gradient: "from-violet-600 via-purple-600 to-indigo-700",
-    accentColor: "#8b5cf6",
+    badge: "Qualcomm hackathon, team of 4",
+    flow: [
+      [
+        n("Camera", "Video frames from the glasses feed three perception lenses that run in parallel."),
+        n("Face embeddings", "The Face ID lens turns each detected face into an embedding on the NPU."),
+        n("Match", "Embeddings are compared against an enrolled database to recognize known faces."),
+      ],
+      [
+        n("Mic", "When a face is unknown, audio from the conversation is captured."),
+        n("faster-whisper", "Speech is transcribed locally with faster-whisper."),
+        n("Local LLM", "A local LLM extracts the name from the introduction."),
+        n("Enroll name", "The new face is enrolled under that name for next time."),
+      ],
+      [
+        n("Camera", "The same frames feed the scene lens."),
+        n("CLIP + BLIP", "CLIP classifies the scene zero-shot and BLIP writes a natural-language caption."),
+        n("Scene caption", "The result is a plain-English description of what the camera sees."),
+      ],
+      [
+        n("Camera", "And the object lens."),
+        n("YOLO + tracking", "YOLO detects objects and tracks them across frames."),
+        n("Object memory", "Sightings are remembered, so you can ask in plain English where something is."),
+      ],
+    ],
   },
   {
     id: "nofi",
     title: "NoFi",
-    subtitle: "Offline Audio Mesh Network",
+    subtitle: "Offline audio mesh network",
     description:
-      "Peer-to-peer communication over sound waves — no WiFi, no internet. FSK encodes text into audio tones; other devices decode via microphone + FFT. Includes mesh relay, near-ultrasonic stealth mode, and client-side Whisper AI.",
-    longDescription:
-      "NoFi uses Frequency Shift Keying (FSK) modulation to encode characters as distinct audio frequencies across 1.2–3 kHz (audible) or 16–20 kHz (near-ultrasonic stealth). Devices auto-relay received messages after a random 10–20s delay, forming an organic mesh. A state-machine receiver handles collision detection. Voice-to-text runs via whisper-tiny.en through Transformers.js — ~40MB one-time download, fully offline after.",
-    tags: ["React", "TypeScript", "Web Audio API", "Transformers.js", "Vite", "FSK"],
+      "Sends text and voice between devices over sound, with no network, server or Bluetooth. FSK encodes characters as tones, the receiver decodes them with an FFT, and devices relay messages to form a mesh. Whisper runs in the browser for voice to text. Measured about 6 characters per second over 3 to 10 m indoors, with 95%+ reliability in quiet rooms.",
+    tags: ["React", "TypeScript", "Vite", "Tailwind CSS", "Web Audio API", "Transformers.js", "FSK"],
     github: "https://github.com/prasanth-kps/Nofi",
     demo: "https://no-fi.vercel.app",
-    highlight: "MADHACKS 2025 · UW Madison",
-    gradient: "from-teal-500 via-cyan-600 to-sky-700",
-    accentColor: "#14b8a6",
+    badge: "MadHacks 2025",
+    views: {
+      software: {
+        description:
+          "Sends text between devices over sound, with no network, server or Bluetooth. FSK encodes characters as tones, the receiver decodes them with an FFT and a state machine, and devices relay messages with unique IDs to form a mesh without loops. Measured about 6 characters per second over 3 to 10 m indoors, with 95%+ reliability in quiet rooms.",
+        tags: ["React", "TypeScript", "Vite", "Tailwind CSS", "Web Audio API", "FSK", "Vercel"],
+      },
+      ml: {
+        description:
+          "Devices talk over sound with no network. FSK encodes text as tones, an FFT-based decoder turns them back into characters, and Whisper (tiny) runs locally in the browser through Transformers.js for offline voice to text.",
+        tags: ["Whisper", "Transformers.js", "FFT", "FSK", "Web Audio API", "TypeScript"],
+      },
+    },
+    flow: [],
+  },
+  {
+    id: "vecscale",
+    title: "VecScale",
+    subtitle: "Distributed vector search in C++",
+    description:
+      "A distributed top-k vector search system. The corpus is sharded, parallel workers search their shards, and results merge into a global ranking scored against an exact baseline. Parallelized with MPI across nodes, OpenMP within nodes and CUDA for distance computation, with latency, throughput, recall@k and strong and weak scaling measured.",
+    tags: ["C++", "MPI", "OpenMP", "CUDA", "SIMD", "Slurm", "CMake"],
+    github: null,
+    demo: null,
+    badge: "HPC course project",
+    flow: [
+      [
+        n("Corpus", "The vector dataset to search."),
+        n("Shards", "The corpus is split into shards so workers can search in parallel."),
+        n("Parallel workers", "Workers search their own shards at once, with MPI across nodes and OpenMP within a node."),
+        n("Local top-k", "Each worker keeps its k nearest candidates. Distance computation is accelerated with SIMD and CUDA."),
+      ],
+      [
+        n("Merge", "Local results from every worker are merged."),
+        n("Global ranking", "The merged candidates become one global top-k ranking."),
+        n("recall@k vs exact", "The ranking is scored against an exact baseline to measure recall@k, alongside latency and throughput."),
+      ],
+    ],
   },
   {
     id: "disaster-response",
     title: "Disaster Response Framework",
-    subtitle: "Fault-Tolerant ML Resource Allocator",
+    subtitle: "Fault-tolerant ML resource allocator",
     description:
-      "CNN + TabNet pipeline predicts disaster severity from IoT/geospatial data and allocates resources in real-time by proximity and urgency. Built-in fault-tolerance with automatic fallback. Backed by published research.",
-    longDescription:
-      "The system integrates geospatial data and real-time IoT sensor inputs into a 1D CNN feature extractor that produces 64-dim representations, then feeds them to an attention-based TabNet regressor to predict priority scores. A fault-tolerant manager continuously monitors resource levels and activates fallback strategies. The interactive Streamlit dashboard provides geospatial maps, analytics, and live allocation controls.",
-    tags: ["Python", "CNN", "TabNet", "Streamlit", "Folium", "Pandas", "MQTT", "WebSockets"],
+      "Ranks emergency requests by priority and allocates medical, food and rescue resources under strict latency goals. A hybrid 1D CNN and TabNet regressor produces the priority score, and a fault-tolerant manager redirects requests to the next nearest active center when nodes fail. Single-author paper.",
+    tags: ["Python", "1D CNN", "TabNet", "WebSockets", "MQTT", "Streamlit", "Folium"],
     github: "https://github.com/prasanth-kps/disaster-response-framework",
     demo: "https://disaster-response-framework.streamlit.app",
-    highlight: "",
-    gradient: "from-orange-500 via-red-600 to-rose-700",
-    accentColor: "#f97316",
+    badge: "Single-author paper",
+    flow: [
+      [
+        n("IoT + geo data", "Coordinates, IoT sensor readings and user-reported severities stream in over WebSockets and MQTT."),
+        n("1D CNN (64-d)", "A 1D CNN condenses the preprocessed features into a 64-dimensional vector."),
+        n("TabNet", "TabNet's attention weights the features that matter and predicts a priority score."),
+      ],
+      [
+        n("Priority score", "Requests are ranked by priority so the most urgent are served first."),
+        n("Allocator", "Medical, food and rescue resources are allocated under strict latency and availability goals."),
+        n("Fallback", "A fault-tolerant manager detects failures or demand surges and redirects requests to the next nearest active center."),
+      ],
+    ],
   },
   {
     id: "rpm",
     title: "Remote Patient Monitoring",
-    subtitle: "Distributed Cloud Health System",
+    subtitle: "Three-tier cloud health system",
     description:
-      "Three-tier cloud RPM system: IoT wearable simulation → gateway aggregation → medical center with K-star health classification and AHP-VIKOR hospital ranking. IJIRCCE 2024 publication.",
-    longDescription:
-      "Tier 1 IoT simulators stream heart rate, blood pressure, SpO₂, temperature, and respiratory rate every 30s. Tier 2 gateway normalizes and forwards data. Tier 3 medical center runs K-star (KNN-based) classification across 6 health status codes and uses AHP-VIKOR multi-criteria decision making to rank hospitals. Full Docker Compose deployment with SQLite persistence and real-time alert engine.",
-    tags: ["Python", "Flask", "SQLite", "Docker", "K-star", "AHP-VIKOR", "Folium"],
+      "Wearable simulators stream vitals to a gateway, which feeds a medical center that classifies health status with K-star and ranks hospitals with AHP-VIKOR. Deployed with Docker Compose. IJIRCCE 2024.",
+    tags: ["Python", "Flask", "SQLite", "Docker", "K-star", "AHP-VIKOR"],
     github: "https://github.com/prasanth-kps/remote-patient-monitoring",
     demo: "https://remote-patient-montioring.onrender.com",
-    highlight: "",
-    gradient: "from-emerald-500 via-green-600 to-teal-700",
-    accentColor: "#10b981",
+    badge: "IJIRCCE 2024",
+    views: {
+      software: {
+        description:
+          "A three-tier cloud system: wearable simulators stream vitals to a gateway, which feeds a medical center with a real-time alert engine and hospital ranking. Deployed with Docker Compose and SQLite persistence. IJIRCCE 2024.",
+        tags: ["Python", "Flask", "SQLite", "Docker"],
+      },
+    },
+    flow: [
+      [
+        n("Wearables", "IoT simulators stream heart rate, blood pressure, SpO2, temperature and respiratory rate every 30 seconds."),
+        n("Gateway", "The gateway normalizes the readings and forwards them."),
+        n("Medical center", "The medical center classifies each patient's health status and raises alerts."),
+        n("Hospital ranking", "Hospitals are ranked on multiple criteria so the best fit can be chosen."),
+      ],
+    ],
+  },
+  {
+    id: "crawler",
+    title: "Job Board Crawler",
+    subtitle: "Nightly crawler and change detector",
+    description:
+      "Scans thousands of postings across 62 job boards every night and emails only the new matches. One scraper per source type behind a uniform record contract, including a headless browser for JavaScript pages. Idempotent re-runs through a UNIQUE URL constraint, and per-source failure isolation so one broken board never halts a run.",
+    tags: ["Python", "requests", "BeautifulSoup", "Playwright", "SQLite", "launchd"],
+    github: null,
+    demo: null,
+    badge: "In daily use",
+    flow: [
+      [
+        n("62 boards", "35 Greenhouse boards, 18 Lever boards and 9 custom career pages."),
+        n("Scrape", "One scraper per source type: JSON APIs, raw HTML, and a headless browser for JavaScript pages. Retries, jittered rate limits and timeouts isolate failures."),
+        n("Normalize", "Different sources are normalized into one record contract and one SQL schema."),
+        n("SQLite", "A UNIQUE URL constraint makes re-runs idempotent, so duplicates never accumulate."),
+      ],
+      [
+        n("Detect changes", "Only new matches survive the title, location and recency filters."),
+        n("Email digest", "A daily email digest, a location-filtered feed and a CSV export."),
+      ],
+    ],
   },
 ];
+
+export const projectFor = (p: Project, view: "general" | "software" | "ml"): Project =>
+  view === "general" ? p : { ...p, ...p.views?.[view] };

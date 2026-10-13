@@ -1,116 +1,133 @@
 "use client";
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
-import { experiences } from "@/data/experience";
-import { Container } from "@/components/SectionWrapper";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useScroll } from "framer-motion";
+import Emblem from "@/components/Emblem";
+import Reveal from "@/components/Reveal";
+import StageConnector from "@/components/StageConnector";
+import { useView } from "@/components/ViewProvider";
+import { bulletsFor, experiences, skillsFor } from "@/data/experience";
+import { copy } from "@/data/views";
+import type { EmblemScene } from "@/lib/sceneDrawers";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+// Each job has a small diagram of the work.
+const EMBLEM: Record<string, EmblemScene> = {
+  qualcomm: "chip",
+  enphase: "solar",
+  visa: "payments",
+  oqlo: "cloud",
+};
 
 export default function Experience() {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const { view } = useView();
+  const c = copy[view];
+  const list = c.experienceOrder.map((id) => experiences.find((e) => e.id === id)!);
+  const track = useRef<HTMLDivElement>(null);
+  // The line fills as the reader moves down the jobs.
+  const { scrollYProgress } = useScroll({ target: track, offset: ["start 0.65", "end 0.55"] });
+
+  // The job crossing the middle of the screen drives the sticky stage on the left.
+  const [active, setActive] = useState(list[0].id);
+  useEffect(() => {
+    const els = copy[view].experienceOrder
+      .map((id) => document.getElementById(`exp-${id}`))
+      .filter((el): el is HTMLElement => !!el);
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((en) => en.isIntersecting && setActive(en.target.id.replace("exp-", ""))),
+      { rootMargin: "-40% 0px -50% 0px" },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [view]);
+  const shown = list.some((e) => e.id === active) ? active : list[0].id;
+  const shownJob = list.find((e) => e.id === shown)!;
 
   return (
-    <section id="experience" ref={ref} style={{ paddingTop: "10rem", paddingBottom: "10rem" }}>
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ position: "absolute" }}>
-        <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-indigo-600/7 rounded-full blur-[140px]" />
-      </div>
+    <section id="experience" className="relative border-t border-line">
+      <div className="mx-auto grid max-w-[1400px] gap-12 px-5 py-24 md:px-10 md:py-32 lg:grid-cols-12 lg:gap-16">
+        <div className="lg:col-span-4">
+          <div className="lg:sticky lg:top-28">
+            <h2 className="text-[clamp(2.4rem,4.4vw,4rem)] font-semibold leading-[1] tracking-[-0.04em]">
+              Where I have shipped
+            </h2>
+            <p className="mt-6 max-w-[32ch] text-muted">{c.experienceBlurb}</p>
 
-      <Container>
-        {/* Section heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          style={{ textAlign: "center", marginBottom: "5rem" }}
-        >
-          <span className="text-indigo-400 font-mono text-sm tracking-widest uppercase">Career</span>
-          <h2 style={{ marginTop: "1rem", fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 700, color: "white", lineHeight: 1.1 }}>
-            Experience
-          </h2>
-          <p style={{ marginTop: "1.25rem", color: "#94a3b8", fontSize: "1.2rem", lineHeight: 1.8, maxWidth: "40rem", marginLeft: "auto", marginRight: "auto" }}>
-            From embedded systems firmware to cloud microservices — across energy, fintech, and SaaS.
-          </p>
-        </motion.div>
-
-        {/* Cards */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "3rem" }}>
-          {experiences.map((exp, i) => (
-            <motion.div
-              key={exp.company}
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.2 + i * 0.15 }}
-            >
-              <div
-                className="group"
-                style={{
-                  position: "relative",
-                  borderRadius: "1.5rem",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  background: "rgba(255, 255, 255, 0.03)",
-                  backdropFilter: "blur(5px)",
-                  WebkitBackdropFilter: "blur(5px)",
-                  overflow: "hidden",
-                  transition: "all 0.3s",
-                }}
-              >
-                {/* Accent left bar */}
-                <div style={{ position: "absolute", left: 0, top: "2.5rem", bottom: "2.5rem", width: "4px", borderRadius: "0 4px 4px 0", backgroundColor: exp.accentColor }} />
-
-                {/* Hover glow overlay */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                  style={{ background: `radial-gradient(ellipse at top left, ${exp.accentColor}10, transparent 65%)` }}
-                />
-
-                <div style={{ padding: "3rem 3rem 3rem 3.5rem" }}>
-                  {/* Header */}
-                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", marginBottom: "2rem" }}>
-                    <div>
-                      <h3 style={{ fontSize: "1.5rem", fontWeight: 700, color: "white", marginBottom: "0.6rem" }}>{exp.role}</h3>
-                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.75rem" }}>
-                        <span style={{ fontSize: "1.2rem", fontWeight: 600, color: exp.accentColor }}>{exp.company}</span>
-                        <span style={{ color: "#334155" }}>·</span>
-                        <span style={{ color: "#94a3b8", fontSize: "0.95rem" }}>{exp.location}</span>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <span style={{ display: "inline-block", padding: "0.4rem 1rem", borderRadius: "999px", border: `1px solid ${exp.accentColor}40`, color: exp.accentColor, backgroundColor: `${exp.accentColor}15`, fontSize: "0.75rem", fontFamily: "monospace" }}>
-                        {exp.type}
-                      </span>
-                      <div style={{ marginTop: "0.6rem", color: "#64748b", fontSize: "0.875rem", fontFamily: "monospace" }}>{exp.period}</div>
-                    </div>
-                  </div>
-
-                  {/* Divider */}
-                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", marginBottom: "2rem" }} />
-
-                  {/* Highlights */}
-                  <ul style={{ display: "flex", flexDirection: "column", gap: "1.25rem", marginBottom: "2.5rem" }}>
-                    {exp.highlights.map((h, j) => (
-                      <li key={j} style={{ display: "flex", gap: "1rem", color: "#cbd5e1", fontSize: "1rem", lineHeight: 1.7 }}>
-                        <span style={{ marginTop: "0.55rem", width: "0.4rem", height: "0.4rem", borderRadius: "50%", flexShrink: 0, backgroundColor: exp.accentColor }} />
-                        {h}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* Skills */}
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
-                    {exp.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        style={{ padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "0.8rem", fontFamily: "monospace", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+            {/* Stage: a frameless diagram of the job being read, swapping as you scroll. */}
+            <div data-stage className="mt-10 hidden max-w-[400px] lg:block">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={shown}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3, ease: EASE }}
+                >
+                  <Emblem scene={EMBLEM[shown]} label={`Diagram of the work at ${shownJob.company}`} />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
-      </Container>
+
+        <div ref={track} className="relative lg:col-span-8">
+          <span aria-hidden className="absolute bottom-0 top-0 hidden w-px bg-line md:block" style={{ left: "10.75rem" }} />
+          <motion.span
+            aria-hidden
+            className="absolute bottom-0 top-0 hidden w-px origin-top bg-accent md:block"
+            style={{ left: "10.75rem", scaleY: scrollYProgress }}
+          />
+          <AnimatePresence>
+            {list.map((e, i) => (
+              <Reveal
+                as="article"
+                layout
+                exit
+                id={`exp-${e.id}`}
+                key={e.company}
+                delay={i * 0.04}
+                className="group grid gap-5 border-t border-line py-10 first:border-t-0 first:pt-0 md:grid-cols-[9.5rem_1fr] md:gap-10 lg:first:pt-2"
+              >
+                <div className="label relative md:pt-3 md:after:absolute md:after:-right-[1.65rem] md:after:top-[1.05rem] md:after:h-2 md:after:w-2 md:after:bg-ink">
+                  <p data-date>{e.period}</p>
+                  <p className="mt-1 opacity-70">{e.type}</p>
+                </div>
+                <div>
+                  <h3 className="text-[clamp(2rem,3.6vw,3.2rem)] font-semibold leading-[1.02] tracking-[-0.035em] transition-colors duration-300 group-hover:text-accent-text">
+                    {e.company}
+                  </h3>
+                  <p className="label mt-3">
+                    {e.role}, {e.location}
+                  </p>
+
+                  {/* On small screens the diagram sits inline, since the sticky stage is hidden. */}
+                  <div className="mt-6 max-w-[380px] lg:hidden">
+                    <Emblem scene={EMBLEM[e.id]} label={`Diagram of the work at ${e.company}`} />
+                  </div>
+
+                  {/* Text swaps with a soft fade when the view changes. */}
+                  <motion.div
+                    key={view}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, ease: EASE }}
+                  >
+                    <ul className="sq-list mt-7 space-y-3.5 text-[1.02rem] leading-relaxed text-muted">
+                      {bulletsFor(e, view).map((h) => (
+                        <li key={h}>{h}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-7 font-mono text-xs leading-relaxed tracking-wide text-ink/70">
+                      {skillsFor(e, view).join(" / ")}
+                    </p>
+                  </motion.div>
+                </div>
+              </Reveal>
+            ))}
+          </AnimatePresence>
+        </div>
+      </div>
+      <StageConnector activeId={shown} />
     </section>
   );
 }
