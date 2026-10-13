@@ -4,7 +4,7 @@ import Reveal from "@/components/Reveal";
 import { useView } from "@/components/ViewProvider";
 import { experiences } from "@/data/experience";
 import { projectFor, projects } from "@/data/projects";
-import { layers, site } from "@/data/site";
+import { layers, resumeFor, site } from "@/data/site";
 import { skillCategories } from "@/data/skills";
 import { copy, views, type View } from "@/data/views";
 import { nextTheme, switchTheme } from "@/lib/theme";
@@ -89,8 +89,8 @@ export default function Terminal() {
               { text: "LinkedIn", href: site.linkedin },
             ];
           case "resume":
-            window.open(site.resume, "_blank", "noopener");
-            return ["Opening resume in a new tab…"];
+            window.open(resumeFor(view).href, "_blank", "noopener");
+            return [`Opening the ${resumeFor(view).name} resume in a new tab…`];
           case "goto": {
             const id = sectionIds.find((s) => s.startsWith(arg) && arg);
             if (!id) return [`No section "${arg}". Try: ${sectionIds.join(", ")}.`];
