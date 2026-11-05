@@ -24,7 +24,12 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const SITE_URL = "https://prasanth-kasa.pages.dev";
+const SHARE_DESCRIPTION =
+  "Prasanth Kasa is a software and ML engineer. M.S. CS at UW-Madison, AI software intern at Qualcomm, formerly at Enphase Energy and Visa. Backend services, systems software and on-device ML.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Prasanth Kasa | Software & ML Engineer",
   description:
     "Portfolio of Prasanth Kasa. MS CS at UW-Madison, AI software intern at Qualcomm, ex-Enphase Energy, IIT Kharagpur. Backend services, systems software and on-device ML.",
@@ -32,8 +37,17 @@ export const metadata: Metadata = {
   authors: [{ name: "Prasanth Kasa" }],
   openGraph: {
     title: "Prasanth Kasa | Software & ML Engineer",
-    description: "MS CS at UW-Madison. Qualcomm, Enphase Energy, IIT Kharagpur.",
+    description: SHARE_DESCRIPTION,
     type: "website",
+    url: SITE_URL,
+    siteName: "Prasanth Kasa",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Prasanth Kasa, Software & ML Engineer" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Prasanth Kasa | Software & ML Engineer",
+    description: SHARE_DESCRIPTION,
+    images: ["/og-image.png"],
   },
 };
 
